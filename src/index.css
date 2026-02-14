@@ -110,13 +110,14 @@ img {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  max-width: 100%;
 }
 
 .logo {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  font-size: 1.5rem;
+  font-size: clamp(1.1rem, 4vw, 1.5rem);
   font-weight: 700;
   color: var(--text-primary);
   background: linear-gradient(
@@ -130,6 +131,7 @@ img {
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
+  white-space: nowrap;
 }
 
 @keyframes gradientShift {
@@ -200,10 +202,10 @@ img {
 
 /* Logo in Navbar */
 .logo-img {
-  height: 45px;
-  width: 45px;
+  height: clamp(30px, 8vw, 45px);
+  width: clamp(30px, 8vw, 45px);
   object-fit: contain;
-  margin-right: 10px;
+  margin-right: 5px;
   filter: drop-shadow(0 0 5px rgba(99, 102, 241, 0.5));
   border-radius: 50%;
   border: 1px solid var(--glass-border);
@@ -431,25 +433,27 @@ img {
 @media (max-width: 768px) {
   .hero {
     height: auto;
-    padding: 4rem 1rem;
+    padding: 3rem 1rem;
+    min-height: 50vh;
   }
 
   .hero::before {
-    font-size: 5rem;
-    letter-spacing: 0.2rem;
+    font-size: 4rem;
+    letter-spacing: 0.1rem;
   }
 
   .hero-logo-3d {
-    width: 250px;
-    height: 250px;
+    width: clamp(180px, 60vw, 250px);
+    height: clamp(180px, 60vw, 250px);
   }
 
   .hero-content h1 {
-    font-size: 2.5rem;
+    font-size: clamp(1.8rem, 8vw, 2.5rem);
   }
 
   .hero-content p {
-    font-size: 1rem;
+    font-size: 0.95rem;
+    padding: 0 1rem;
   }
 }
 
@@ -1514,36 +1518,40 @@ img {
 
 @media (max-width: 768px) {
   .gallery-carousel-wrapper {
-    height: 350px;
-    perspective: 1500px;
-    margin-bottom: 4rem;
+    height: 300px;
+    perspective: 1000px;
+    margin-bottom: 3rem;
+    width: 100%;
+    margin-left: 0;
+    margin-right: 0;
+    padding: 0;
   }
   
   .gallery-carousel {
-    width: 130px;
-    height: 200px;
+    width: 110px;
+    height: 170px;
   }
   
   .gallery-carousel-item {
-    transform: rotateY(calc(var(--i) * (360deg / var(--total)))) translateZ(180px); /* Significantly reduced translateZ */
+    transform: rotateY(calc(var(--i) * (360deg / var(--total)))) translateZ(140px);
   }
   
   .gallery-carousel-item:hover {
-    transform: rotateY(calc(var(--i) * (360deg / var(--total)))) translateZ(210px);
+    transform: rotateY(calc(var(--i) * (360deg / var(--total)))) translateZ(160px);
   }
 
   .section-header h2 {
-    font-size: 2rem;
+    font-size: 1.8rem;
   }
 }
 
 @media (max-width: 480px) {
   .gallery-carousel-item {
-    transform: rotateY(calc(var(--i) * (360deg / var(--total)))) translateZ(130px); /* Even smaller for tiny phones */
+    transform: rotateY(calc(var(--i) * (360deg / var(--total)))) translateZ(100px); 
   }
   
   .gallery-carousel-item:hover {
-    transform: rotateY(calc(var(--i) * (360deg / var(--total)))) translateZ(150px);
+    transform: rotateY(calc(var(--i) * (360deg / var(--total)))) translateZ(120px);
   }
 }
 
