@@ -232,6 +232,75 @@ img {
   color: var(--primary-color);
 }
 
+.mobile-menu-btn {
+  display: none;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0.5rem;
+  z-index: 1001;
+}
+
+.hamburger {
+  width: 24px;
+  height: 20px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.hamburger span {
+  display: block;
+  width: 100%;
+  height: 2px;
+  background-color: var(--text-primary);
+  border-radius: 2px;
+  transition: all 0.3s ease;
+}
+
+.hamburger.open span:nth-child(1) {
+  transform: translateY(9px) rotate(45deg);
+}
+
+.hamburger.open span:nth-child(2) {
+  opacity: 0;
+}
+
+.hamburger.open span:nth-child(3) {
+  transform: translateY(-9px) rotate(-45deg);
+}
+
+@media (max-width: 768px) {
+  .mobile-menu-btn {
+    display: block;
+  }
+
+  .nav-links {
+    position: fixed;
+    top: 0;
+    right: -100%;
+    width: 80%;
+    height: 100vh;
+    background: var(--surface-dark);
+    flex-direction: column;
+    justify-content: center;
+    gap: 2.5rem;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 1000;
+    box-shadow: -10px 0 30px rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(10px);
+  }
+
+  .nav-links.open {
+    right: 0;
+  }
+
+  .nav-link {
+    font-size: 1.25rem;
+  }
+}
+
 .cart-link {
   position: relative;
   display: flex;
@@ -358,6 +427,31 @@ img {
   margin-right: auto;
 }
 
+@media (max-width: 768px) {
+  .hero {
+    height: auto;
+    padding: 4rem 1rem;
+  }
+
+  .hero::before {
+    font-size: 5rem;
+    letter-spacing: 0.2rem;
+  }
+
+  .hero-logo-3d {
+    width: 250px;
+    height: 250px;
+  }
+
+  .hero-content h1 {
+    font-size: 2.5rem;
+  }
+
+  .hero-content p {
+    font-size: 1rem;
+  }
+}
+
 .cta-button {
   display: inline-block;
   background: linear-gradient(
@@ -398,6 +492,22 @@ img {
 .cta-button:hover {
   transform: translateY(-3px) scale(1.05);
   box-shadow: 0 8px 25px rgba(99, 102, 241, 0.6), 0 0 40px rgba(236, 72, 153, 0.4);
+}
+
+@media (max-width: 480px) {
+  .hero-logo-3d {
+    width: 200px;
+    height: 200px;
+  }
+  
+  .hero-content h1 {
+    font-size: 2rem;
+  }
+  
+  .product-grid {
+    grid-template-columns: 1fr;
+    padding: 0 1rem;
+  }
 }
 
 @keyframes gradientFlow {
@@ -961,7 +1071,7 @@ img {
 /* Checkout Page */
 .checkout-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr;
   gap: 2rem;
   margin-top: 2rem;
 }
@@ -1570,6 +1680,35 @@ img {
   gap: 3rem;
   max-width: 1400px;
   margin: 0 auto;
+}
+
+@media (max-width: 1024px) {
+  .designer-container {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .designer-page {
+    padding: 2rem 0;
+  }
+  
+  .designer-header h1 {
+    font-size: 2rem;
+  }
+  
+  .tshirt-preview {
+    padding: 1rem;
+  }
+  
+  .tshirt-canvas {
+    height: 400px;
+  }
+  
+  .tshirt-3d-container {
+    transform: scale(0.85);
+  }
 }
 
 /* T-Shirt Preview */
@@ -2229,7 +2368,7 @@ img {
 
 @media (min-width: 768px) {
   .checkout-grid {
-    grid-template-columns: repeat(1, 1fr);
+    grid-template-columns: 1fr 1fr;
   }
 }
 

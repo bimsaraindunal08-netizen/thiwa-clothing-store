@@ -151,8 +151,46 @@ const TShirtDesigner = () => {
         </div>
     );
 
+    // Touch handlers for mobile
+    const handleTouchStart = (e, type) => {
+        if (isAutoRotating) return;
+        setIsDragging(true);
+        setDraggedElement(type);
+    };
+
+    const handleTouchMove = (e) => {
+        if (!isDragging || !designerOverlayRef.current) return;
+        // Use the first touch point
+        const touch = e.touches[0];
+        const rect = designerOverlayRef.current.getBoundingClientRect();
+        let x = ((touch.clientX - rect.left) / rect.width) * 100;
+        let y = ((touch.clientY - rect.top) / rect.height) * 100;
+
+        x = Math.max(0, Math.min(100, x));
+        y = Math.max(0, Math.min(100, y));
+
+        if (draggedElement === 'image') {
+            if (view === 'front') setFrontImagePos({ x, y });
+            else setBackImagePos({ x, y });
+        } else if (draggedElement === 'text') {
+            if (view === 'front') setFrontTextPos({ x, y });
+            else setBackTextPos({ x, y });
+        }
+    };
+
+    const handleTouchEnd = () => {
+        setIsDragging(false);
+        setDraggedElement(null);
+    };
+
     return (
-        <div className="designer-page" onMouseMove={handleMouseMove} onMouseUp={handleMouseUp}>
+        <div 
+            className="designer-page" 
+            onMouseMove={handleMouseMove} 
+            onMouseUp={handleMouseUp}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
+        >
             <div className="container">
                 <div className="designer-header">
                     <h1>Design Your Own T-Shirt</h1>
@@ -198,6 +236,7 @@ const TShirtDesigner = () => {
                                                     className="design-element draggable" 
                                                     style={{ left: `${frontImagePos.x}%`, top: `${frontImagePos.y}%`, cursor: isDragging ? 'grabbing' : 'grab' }}
                                                     onMouseDown={(e) => handleMouseDown(e, 'image')}
+                                                    onTouchStart={(e) => handleTouchStart(e, 'image')}
                                                 >
                                                     <img src={frontImage} alt="Front Design" className="design-image" />
                                                 </div>
@@ -207,6 +246,7 @@ const TShirtDesigner = () => {
                                                     className="design-element design-text draggable" 
                                                     style={{ left: `${frontTextPos.x}%`, top: `${frontTextPos.y}%`, color: textColor, fontSize: `${fontSize}px`, fontFamily: fontFamily, cursor: isDragging ? 'grabbing' : 'grab' }}
                                                     onMouseDown={(e) => handleMouseDown(e, 'text')}
+                                                    onTouchStart={(e) => handleTouchStart(e, 'text')}
                                                 >
                                                     {frontText}
                                                 </div>
@@ -234,6 +274,7 @@ const TShirtDesigner = () => {
                                                     className="design-element draggable" 
                                                     style={{ left: `${backImagePos.x}%`, top: `${backImagePos.y}%`, cursor: isDragging ? 'grabbing' : 'grab' }}
                                                     onMouseDown={(e) => handleMouseDown(e, 'image')}
+                                                    onTouchStart={(e) => handleTouchStart(e, 'image')}
                                                 >
                                                     <img src={backImage} alt="Back Design" className="design-image" />
                                                 </div>
@@ -243,6 +284,7 @@ const TShirtDesigner = () => {
                                                     className="design-element design-text draggable" 
                                                     style={{ left: `${backTextPos.x}%`, top: `${backTextPos.y}%`, color: textColor, fontSize: `${fontSize}px`, fontFamily: fontFamily, cursor: isDragging ? 'grabbing' : 'grab' }}
                                                     onMouseDown={(e) => handleMouseDown(e, 'text')}
+                                                    onTouchStart={(e) => handleTouchStart(e, 'text')}
                                                 >
                                                     {backText}
                                                 </div>
