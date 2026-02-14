@@ -1,4 +1,16 @@
 import React, { createContext, useState, useEffect } from "react";
+import { db } from "../firebase";
+import { 
+  collection, 
+  onSnapshot, 
+  addDoc, 
+  updateDoc, 
+  deleteDoc, 
+  doc, 
+  setDoc,
+  query,
+  orderBy
+} from "firebase/firestore";
 
 export const ShopContext = createContext();
 
@@ -57,92 +69,80 @@ Branch: Colombo
 Send a screenshot of the receipt to our WhatsApp: +94 77 123 4567
 `;
 
-// Helper function to safely save to localStorage
-const saveToLocalStorage = (key, value) => {
-  try {
-    const serializedValue = typeof value === 'string' ? value : JSON.stringify(value);
-    localStorage.setItem(key, serializedValue);
-    return true;
-  } catch (error) {
-    console.error(`Error saving ${key} to localStorage:`, error);
-    return false;
-  }
-};
-
-// Helper function to safely load from localStorage
-const loadFromLocalStorage = (key, defaultValue) => {
-  try {
-    const saved = localStorage.getItem(key);
-    if (saved === null) return defaultValue;
-    
-    // If default value is a string, return saved as string
-    if (typeof defaultValue === 'string') return saved;
-    
-    // Otherwise parse as JSON
-    return JSON.parse(saved);
-  } catch (error) {
-    console.error(`Error loading ${key} from localStorage:`, error);
-    return defaultValue;
-  }
-};
-
 export const ShopProvider = ({ children }) => {
-  const [products, setProducts] = useState(() => {
-    return loadFromLocalStorage("thiwa_products", initialProducts);
-  });
-
+  const [products, setProducts] = useState(initialProducts);
+  const [galleryImages, setGalleryImages] = useState(initialGallery);
+  const [paymentInstructions, setPaymentInstructions] = useState(initialPaymentInstructions);
+  const [adminCredentials, setAdminCredentials] = useState({ username: "admin", password: "password123" });
+  const [orders, setOrders] = useState([]);
   const [cart, setCart] = useState(() => {
-    return loadFromLocalStorage("thiwa_cart", []);
+    const saved = localStorage.getItem("thiwa_cart");
+    return saved ? JSON.parse(saved) : [];
   });
-
   const [isAdmin, setIsAdmin] = useState(() => {
-    return loadFromLocalStorage("thiwa_isAdmin", "false") === "true";
+    return localStorage.getItem("thiwa_isAdmin") === "true";
   });
 
-  const [paymentInstructions, setPaymentInstructions] = useState(() => {
-    return loadFromLocalStorage("thiwa_payment_instructions", initialPaymentInstructions);
-  });
-
-  const [adminCredentials, setAdminCredentials] = useState(() => {
-    return loadFromLocalStorage("thiwa_admin_creds", { username: "admin", password: "password123" });
-  });
-
-  const [galleryImages, setGalleryImages] = useState(() => {
-    return loadFromLocalStorage("thiwa_gallery", initialGallery);
-  });
-
-  const [orders, setOrders] = useState(() => {
-    return loadFromLocalStorage("thiwa_orders", []);
-  });
-
-  // Automatically save to localStorage whenever state changes
+  // Sync Cart to LocalStorage (Cart should stay local to the device)
   useEffect(() => {
-    saveToLocalStorage("thiwa_products", products);
-  }, [products]);
-
-  useEffect(() => {
-    saveToLocalStorage("thiwa_cart", cart);
+    localStorage.setItem("thiwa_cart", JSON.stringify(cart));
   }, [cart]);
 
   useEffect(() => {
-    saveToLocalStorage("thiwa_isAdmin", isAdmin.toString());
+    localStorage.setItem("thiwa_isAdmin", isAdmin.toString());
   }, [isAdmin]);
 
+  // Firebase Real-time Sync
   useEffect(() => {
-    saveToLocalStorage("thiwa_payment_instructions", paymentInstructions);
-  }, [paymentInstructions]);
+    // 1. Sync Products
+    const unsubProducts = onSnapshot(collection(db, "products"), (snapshot) => {
+      if (!snapshot.empty) {
+        setProducts(snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id })));
+      } else {
+        // If empty, initialize with defaults
+        initialProducts.forEach(async (p) => {
+          await setDoc(doc(db, "products", p.id.toString()), p);
+        });
+      }
+    });
 
-  useEffect(() => {
-    saveToLocalStorage("thiwa_admin_creds", adminCredentials);
-  }, [adminCredentials]);
+    // 2. Sync Gallery
+    const unsubGallery = onSnapshot(collection(db, "gallery"), (snapshot) => {
+      if (!snapshot.empty) {
+        setGalleryImages(snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id })));
+      } else {
+        initialGallery.forEach(async (img) => {
+          await setDoc(doc(db, "gallery", img.id.toString()), img);
+        });
+      }
+    });
 
-  useEffect(() => {
-    saveToLocalStorage("thiwa_gallery", galleryImages);
-  }, [galleryImages]);
+    // 3. Sync Settings (Payment & Admin)
+    const unsubSettings = onSnapshot(collection(db, "settings"), (snapshot) => {
+      snapshot.docs.forEach(doc => {
+        if (doc.id === "payment") setPaymentInstructions(doc.data().text);
+        if (doc.id === "admin") setAdminCredentials(doc.data());
+      });
+      if (snapshot.empty) {
+        // Initialize settings
+        setDoc(doc(db, "settings", "payment"), { text: initialPaymentInstructions });
+        setDoc(doc(db, "settings", "admin"), { username: "admin", password: "password123" });
+      }
+    });
 
-  useEffect(() => {
-    saveToLocalStorage("thiwa_orders", orders);
-  }, [orders]);
+    // 4. Sync Orders
+    const q = query(collection(db, "orders"), orderBy("date", "desc"));
+    const unsubOrders = onSnapshot(q, (snapshot) => {
+      setOrders(snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id })));
+    });
+
+    return () => {
+      unsubProducts();
+      unsubGallery();
+      unsubSettings();
+      unsubOrders();
+    };
+  }, []);
 
   const addToCart = (product) => {
     setCart((prev) => {
@@ -164,18 +164,16 @@ export const ShopProvider = ({ children }) => {
 
   const clearCart = () => setCart([]);
 
-  const addProduct = (product) => {
-    setProducts((prev) => [...prev, { ...product, id: Date.now() }]);
+  const addProduct = async (product) => {
+    await addDoc(collection(db, "products"), product);
   };
 
-  const updateProduct = (id, updatedProduct) => {
-    setProducts((prev) =>
-      prev.map((p) => (p.id === id ? { ...p, ...updatedProduct } : p)),
-    );
+  const updateProduct = async (id, updatedProduct) => {
+    await updateDoc(doc(db, "products", id.toString()), updatedProduct);
   };
 
-  const removeProduct = (id) => {
-    setProducts((prev) => prev.filter((p) => p.id !== id));
+  const removeProduct = async (id) => {
+    await deleteDoc(doc(db, "products", id.toString()));
   };
 
   const loginAdmin = (username, password) => {
@@ -193,27 +191,30 @@ export const ShopProvider = ({ children }) => {
     setIsAdmin(false);
   };
 
-  const updateAdminCredentials = (newUsername, newPassword) => {
-    setAdminCredentials({ username: newUsername, password: newPassword });
+  const updateAdminCredentials = async (newUsername, newPassword) => {
+    await setDoc(doc(db, "settings", "admin"), { username: newUsername, password: newPassword });
   };
 
-  const addGalleryImage = (image) => {
-    setGalleryImages((prev) => [...prev, { id: Date.now(), image }]);
+  const updatePaymentInstructions = async (text) => {
+    await setDoc(doc(db, "settings", "payment"), { text });
   };
 
-  const removeGalleryImage = (id) => {
-    setGalleryImages((prev) => prev.filter((img) => img.id !== id));
+  const addGalleryImage = async (image) => {
+    await addDoc(collection(db, "gallery"), { image });
   };
 
-  const addOrder = (orderData) => {
+  const removeGalleryImage = async (id) => {
+    await deleteDoc(doc(db, "gallery", id.toString()));
+  };
+
+  const addOrder = async (orderData) => {
     const newOrder = {
-      id: Date.now(),
       date: new Date().toISOString(),
       status: 'Pending',
       ...orderData
     };
-    setOrders((prev) => [newOrder, ...prev]);
-    return newOrder;
+    const docRef = await addDoc(collection(db, "orders"), newOrder);
+    return { ...newOrder, id: docRef.id };
   };
 
   return (
@@ -223,7 +224,7 @@ export const ShopProvider = ({ children }) => {
         cart,
         isAdmin,
         paymentInstructions,
-        setPaymentInstructions,
+        setPaymentInstructions: updatePaymentInstructions,
         addToCart,
         removeFromCart,
         clearCart,
