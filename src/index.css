@@ -51,6 +51,7 @@ body {
   min-height: 100vh;
   overflow-x: hidden;
   position: relative;
+  width: 100%;
 }
 
 body::before {
@@ -709,6 +710,31 @@ img {
 @media (max-width: 768px) {
   .cart-content {
     grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .cart-item {
+    flex-direction: column;
+    text-align: center;
+    gap: 1rem;
+    padding: 1.5rem;
+  }
+  
+  .cart-item-img {
+    width: 120px;
+    height: 120px;
+    margin: 0 auto;
+  }
+  
+  .cart-item-details {
+    width: 100%;
+  }
+
+  .btn-remove {
+    align-self: flex-end;
+    margin-top: -3rem;
   }
 }
 
@@ -1488,20 +1514,36 @@ img {
 
 @media (max-width: 768px) {
   .gallery-carousel-wrapper {
-    height: 400px;
+    height: 350px;
+    perspective: 1500px;
+    margin-bottom: 4rem;
   }
   
   .gallery-carousel {
-    width: 150px;
-    height: 220px;
+    width: 130px;
+    height: 200px;
   }
   
   .gallery-carousel-item {
-    transform: rotateY(calc(var(--i) * (360deg / var(--total)))) translateZ(300px);
+    transform: rotateY(calc(var(--i) * (360deg / var(--total)))) translateZ(180px); /* Significantly reduced translateZ */
   }
   
   .gallery-carousel-item:hover {
-    transform: rotateY(calc(var(--i) * (360deg / var(--total)))) translateZ(340px);
+    transform: rotateY(calc(var(--i) * (360deg / var(--total)))) translateZ(210px);
+  }
+
+  .section-header h2 {
+    font-size: 2rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .gallery-carousel-item {
+    transform: rotateY(calc(var(--i) * (360deg / var(--total)))) translateZ(130px); /* Even smaller for tiny phones */
+  }
+  
+  .gallery-carousel-item:hover {
+    transform: rotateY(calc(var(--i) * (360deg / var(--total)))) translateZ(150px);
   }
 }
 
@@ -2916,11 +2958,44 @@ img {
   .order-item-row {
     flex-direction: column;
     align-items: flex-start;
+    gap: 1rem;
   }
   
   .order-item-img {
     width: 100%;
+    height: auto;
+    max-height: 200px;
+  }
+  
+  .item-total {
+    align-self: flex-end;
+    font-size: 1.2rem;
+  }
+
+  .admin-dashboard {
+     padding: 1.5rem 0.5rem;
+  }
+  
+  .tab-btn {
+    padding: 0.6rem 1rem;
+    font-size: 0.9rem;
+  }
+
+  .admin-product-item {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .admin-product-item img {
+    width: 150px;
     height: 150px;
+    margin: 0 auto;
+  }
+
+  .admin-header {
+    flex-direction: column;
+    gap: 1.5rem;
+    text-align: center;
   }
 }
 
